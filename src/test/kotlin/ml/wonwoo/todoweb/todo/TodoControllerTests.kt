@@ -1,5 +1,6 @@
 package ml.wonwoo.todoweb.todo
 
+import ml.wonwoo.todoweb.any
 import org.junit.jupiter.api.Test
 import org.mockito.ArgumentMatchers.anyBoolean
 import org.mockito.BDDMockito.anyLong
@@ -120,5 +121,3 @@ internal class TodoControllerTests(private val mockMvc: MockMvc) {
         }
     }
 }
-
-inline fun <reified T> any(): T = Mockito.any()

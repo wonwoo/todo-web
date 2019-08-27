@@ -5,6 +5,7 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.PutMapping
+import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import java.time.LocalDateTime
@@ -17,10 +18,10 @@ class TodoController(private val todoService: TodoService) {
     fun findAll(): List<TodoDto> = todoService.findAll().map { it.dto() }
 
     @PostMapping
-    fun save(todoRequest: TodoRequest) = todoService.save(todoRequest.toTodo()).dto()
+    fun save(@RequestBody todoRequest: TodoRequest) = todoService.save(todoRequest.toTodo()).dto()
 
     @PutMapping("/{id}")
-    fun completed(@PathVariable id: Long, todoCompleted : TodoCompleted) = todoService.completed(id ,todoCompleted.completed)
+    fun completed(@PathVariable id: Long, @RequestBody todoCompleted : TodoCompleted) = todoService.completed(id ,todoCompleted.completed)
 
     @DeleteMapping("/{id}")
     fun delete(@PathVariable id: Long) = todoService.delete(id)

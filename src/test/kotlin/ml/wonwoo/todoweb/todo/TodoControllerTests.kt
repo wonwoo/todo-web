@@ -28,10 +28,10 @@ internal class TodoControllerTests(private val mockMvc: MockMvc) {
 
         given(todoService.findAll()).willReturn(
 
-                listOf(Todo(title = "todo list", completed = false),
-                    Todo(title = "spring study", completed = true))
+            listOf(Todo(title = "todo list", completed = false),
+                Todo(title = "spring study", completed = true))
 
-            )
+        )
 
         mockMvc.get("/todo") {
             accept = APPLICATION_JSON
@@ -61,9 +61,9 @@ internal class TodoControllerTests(private val mockMvc: MockMvc) {
         )
 
         mockMvc.post("/todo") {
-            param("title", "todo list")
-            param("completed", "false")
+            content = """{"title" :"todo list" , "completed" : "false"}"""
             accept = APPLICATION_JSON
+            contentType = APPLICATION_JSON
             headers {
                 contentLanguage = Locale.KOREA
             }
@@ -78,7 +78,7 @@ internal class TodoControllerTests(private val mockMvc: MockMvc) {
     }
 
     @Test
-    fun `todo completed test` () {
+    fun `todo completed test`() {
 
         given(todoService.completed(anyLong(), anyBoolean())).willReturn(
 
@@ -87,8 +87,11 @@ internal class TodoControllerTests(private val mockMvc: MockMvc) {
         )
 
         mockMvc.put("/todo/{id}", 1) {
+
+            content = """{"completed" : "true"}"""
             param("completed", "true")
             accept = APPLICATION_JSON
+            contentType = APPLICATION_JSON
             headers {
                 contentLanguage = Locale.KOREA
             }

@@ -6,7 +6,6 @@ import org.mockito.ArgumentMatchers.anyBoolean
 import org.mockito.BDDMockito.anyLong
 import org.mockito.BDDMockito.doNothing
 import org.mockito.BDDMockito.given
-import org.mockito.Mockito
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
 import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.http.MediaType.APPLICATION_JSON

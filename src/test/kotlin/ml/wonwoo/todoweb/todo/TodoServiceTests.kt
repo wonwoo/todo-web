@@ -76,10 +76,10 @@ internal class TodoServiceTests(@Mock private val todoRepository: TodoRepository
         given(todoRepository.findById(anyLong()))
             .willReturn(Optional.empty())
 
-        assertThatExceptionOfType<NullPointerException>()
+        assertThatExceptionOfType<TodoNotFoundException>()
             .isThrownBy {
                 todoService.completed(1, false)
-            }.withMessage("todo null")
+            }.withMessage("todo not found id : 1")
 
     }
 

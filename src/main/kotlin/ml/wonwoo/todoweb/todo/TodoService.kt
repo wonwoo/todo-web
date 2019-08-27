@@ -19,7 +19,7 @@ class TodoService(private val todoRepository: TodoRepository) {
 
         this.completed = completed
 
-    } ?: throw NullPointerException("todo null")
+    } ?: throw TodoNotFoundException("todo not found id : $id")
 
     @Transactional
     fun delete(id: Long) = todoRepository.deleteById(id)

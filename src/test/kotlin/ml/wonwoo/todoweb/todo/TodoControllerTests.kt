@@ -3,16 +3,12 @@ package ml.wonwoo.todoweb.todo
 import ml.wonwoo.todoweb.any
 import org.junit.jupiter.api.Test
 import org.mockito.ArgumentMatchers.anyBoolean
-import org.mockito.ArgumentMatchers.anyString
 import org.mockito.BDDMockito.anyLong
 import org.mockito.BDDMockito.doNothing
 import org.mockito.BDDMockito.given
-import org.mockito.Mockito
-import org.mockito.Mockito.*
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
 import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.http.MediaType.APPLICATION_JSON
-import org.springframework.messaging.simp.SimpMessagingTemplate
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.delete
 import org.springframework.test.web.servlet.get
@@ -26,9 +22,6 @@ internal class TodoControllerTests(private val mockMvc: MockMvc) {
 
     @MockBean
     lateinit var todoService: TodoService
-
-    @MockBean
-    lateinit var simpMessagingTemplate: SimpMessagingTemplate
 
     @Test
     fun `todo find all test`() {
@@ -60,9 +53,6 @@ internal class TodoControllerTests(private val mockMvc: MockMvc) {
 
     @Test
     fun `todo save test`() {
-
-
-        doNothing().`when`(simpMessagingTemplate).convertAndSend(anyString(), any<Any>())
 
         given(todoService.save(any())).willReturn(
 

@@ -1,6 +1,5 @@
 package ml.wonwoo.todoweb.todo
 
-import org.springframework.messaging.simp.SimpMessagingTemplate
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -13,21 +12,13 @@ import java.time.LocalDateTime
 
 @RestController
 @RequestMapping("/todo")
-class TodoController(private val todoService: TodoService, private val simpMessagingTemplate: SimpMessagingTemplate) {
+class TodoController(private val todoService: TodoService) {
 
     @GetMapping
     fun findAll(): List<TodoDto> = todoService.findAll().map { it.dto() }
 
     @PostMapping
-    fun save(@RequestBody todoRequest: TodoRequest): TodoDto {
-
-        val todoDto = todoService.save(todoRequest.toTodo()).dto()
-
-        simpMessagingTemplate.convertAndSend("/todo/message", todoDto)
-
-        return todoDto
-
-    }
+    fun save(@RequestBody todoRequest: TodoRequest): TodoDto = todoService.save(todoRequest.toTodo()).dto()
 
     @PutMapping("/{id}")
     fun completed(@PathVariable id: Long, @RequestBody todoCompleted: TodoCompleted) = todoService.completed(id, todoCompleted.completed)

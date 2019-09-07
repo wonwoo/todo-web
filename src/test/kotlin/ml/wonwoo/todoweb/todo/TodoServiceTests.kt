@@ -1,18 +1,18 @@
 package ml.wonwoo.todoweb.todo
 
 import ml.wonwoo.todoweb.any
-import ml.wonwoo.todoweb.assertThatExceptionOfType
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
-import org.mockito.BDDMockito.anyLong
-import org.mockito.BDDMockito.doNothing
+import org.mockito.ArgumentMatchers.anyString
 import org.mockito.BDDMockito.given
 import org.mockito.BDDMockito.verify
 import org.mockito.Mock
 import org.mockito.Mockito.atLeastOnce
 import org.mockito.junit.jupiter.MockitoExtension
-import java.util.Optional
+import reactor.core.publisher.Flux
+import reactor.core.publisher.Mono
+import reactor.test.StepVerifier
 
 
 @ExtendWith(MockitoExtension::class)
@@ -26,19 +26,20 @@ internal class TodoServiceTests(@Mock private val todoRepository: TodoRepository
     fun `todo find all test`() {
 
         given(todoRepository.findAll())
-            .willReturn(listOf(Todo(id = 1L, title = "todo list", completed = true),
-                Todo(id = 2L, title = "todo list1", completed = false)))
+            .willReturn(Flux.just(Todo(id = "foo", title = "todo list", completed = true),
+                Todo(id = "bar", title = "todo list1", completed = false)))
 
         val todo = todoService.findAll()
 
-        assertThat(todo).hasSize(2)
-        assertThat(todo[0].id).isEqualTo(1)
-        assertThat(todo[0].title).isEqualTo("todo list")
-        assertThat(todo[0].completed).isEqualTo(true)
-
-        assertThat(todo[1].id).isEqualTo(2)
-        assertThat(todo[1].title).isEqualTo("todo list1")
-        assertThat(todo[1].completed).isEqualTo(false)
+        StepVerifier.create(todo).assertNext {
+            assertThat(it.id).isEqualTo("foo")
+            assertThat(it.title).isEqualTo("todo list")
+            assertThat(it.completed).isEqualTo(true)
+        }.assertNext {
+            assertThat(it.id).isEqualTo("bar")
+            assertThat(it.title).isEqualTo("todo list1")
+            assertThat(it.completed).isEqualTo(false)
+        }.verifyComplete()
     }
 
 
@@ -46,51 +47,47 @@ internal class TodoServiceTests(@Mock private val todoRepository: TodoRepository
     fun `todo save test`() {
 
         given(todoRepository.save(any<Todo>()))
-            .willReturn(Todo(id = 1L, title = "todo list", completed = true))
+            .willReturn(Mono.just(Todo(id = "foo", title = "todo list", completed = true)))
 
         val todo = todoService.save(Todo(title = "todo list", completed = true))
 
-        assertThat(todo.id).isEqualTo(1)
-        assertThat(todo.title).isEqualTo("todo list")
-        assertThat(todo.completed).isEqualTo(true)
+        StepVerifier.create(todo).assertNext {
+            assertThat(it.id).isEqualTo("foo")
+            assertThat(it.title).isEqualTo("todo list")
+            assertThat(it.completed).isEqualTo(true)
+        }.verifyComplete()
 
     }
 
     @Test
     fun `todo completed test`() {
 
-        given(todoRepository.findById(anyLong()))
-            .willReturn(Optional.of(Todo(id = 1L, title = "todo list", completed = true)))
+        given(todoRepository.findById(anyString()))
+            .willReturn(Mono.just(Todo(id = "foo", title = "todo list", completed = true)))
 
-        val todo = todoService.completed(1, false)
+        given(todoRepository.save(any<Todo>()))
+            .willReturn(Mono.just(Todo(id = "foo", title = "todo list", completed = true)))
 
-        assertThat(todo.id).isEqualTo(1)
-        assertThat(todo.title).isEqualTo("todo list")
-        assertThat(todo.completed).isEqualTo(false)
+        val todo = todoService.completed("foo", false)
 
-    }
-
-    @Test
-    fun `todo completed find all not found test`() {
-
-        given(todoRepository.findById(anyLong()))
-            .willReturn(Optional.empty())
-
-        assertThatExceptionOfType<TodoNotFoundException>()
-            .isThrownBy {
-                todoService.completed(1, false)
-            }.withMessage("todo not found id : 1")
+        StepVerifier.create(todo).assertNext {
+            assertThat(it.id).isEqualTo("foo")
+            assertThat(it.title).isEqualTo("todo list")
+            assertThat(it.completed).isEqualTo(true)
+        }.verifyComplete()
 
     }
 
     @Test
     fun `todo delete test`() {
 
-        doNothing().`when`(todoRepository).deleteById(any())
+        given(todoRepository.deleteById(anyString())).willReturn(Mono.empty())
 
-        todoService.delete(1)
+        val delete = todoService.delete("foo")
 
-        verify(todoRepository, atLeastOnce()).deleteById(any())
+        StepVerifier.create(delete).then {
+            verify(todoRepository, atLeastOnce()).deleteById(anyString())
+        }.verifyComplete()
 
     }
 }

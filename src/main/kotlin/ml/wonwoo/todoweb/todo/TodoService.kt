@@ -1,27 +1,23 @@
 package ml.wonwoo.todoweb.todo
 
-import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
-import org.springframework.transaction.annotation.Transactional
+import reactor.core.publisher.Flux
 
 
 @Service
-@Transactional(readOnly = true)
 class TodoService(private val todoRepository: TodoRepository) {
 
-    fun findAll(): List<Todo> = todoRepository.findAll()
+    fun findAll(): Flux<Todo> = todoRepository.findAll()
 
-    @Transactional
     fun save(todo: Todo) = todoRepository.save(todo)
 
-    @Transactional
-    fun completed(id: Long, completed: Boolean) = todoRepository.findByIdOrNull(id)?.apply {
+    fun completed(id: String, completed: Boolean) = todoRepository.findById(id)
+        .doOnNext {
 
-        this.completed = completed
+            it.completed = completed
 
-    } ?: throw TodoNotFoundException("todo not found id : $id")
+        }.flatMap { todoRepository.save(it) }.log()
 
-    @Transactional
-    fun delete(id: Long) = todoRepository.deleteById(id)
+    fun delete(id: String) = todoRepository.deleteById(id)
 
 }

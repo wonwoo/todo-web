@@ -3,21 +3,17 @@ package ml.wonwoo.todoweb.todo
 import ml.wonwoo.todoweb.any
 import org.junit.jupiter.api.Test
 import org.mockito.ArgumentMatchers.anyBoolean
-import org.mockito.BDDMockito.anyLong
-import org.mockito.BDDMockito.doNothing
+import org.mockito.ArgumentMatchers.anyString
 import org.mockito.BDDMockito.given
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
+import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest
 import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.http.MediaType.APPLICATION_JSON
-import org.springframework.test.web.servlet.MockMvc
-import org.springframework.test.web.servlet.delete
-import org.springframework.test.web.servlet.get
-import org.springframework.test.web.servlet.post
-import org.springframework.test.web.servlet.put
-import java.util.Locale
+import org.springframework.test.web.reactive.server.WebTestClient
+import reactor.core.publisher.Flux
+import reactor.core.publisher.Mono
 
-@WebMvcTest(TodoController::class)
-internal class TodoControllerTests(private val mockMvc: MockMvc) {
+@WebFluxTest(TodoController::class)
+internal class TodoControllerTests(private val webTestClient: WebTestClient) {
 
 
     @MockBean
@@ -28,26 +24,23 @@ internal class TodoControllerTests(private val mockMvc: MockMvc) {
 
         given(todoService.findAll()).willReturn(
 
-            listOf(Todo(title = "todo list", completed = false),
+            Flux.just(Todo(title = "todo list", completed = false),
                 Todo(title = "spring study", completed = true))
 
         )
 
-        mockMvc.get("/todo") {
-            accept = APPLICATION_JSON
-            headers {
-                contentLanguage = Locale.KOREA
-            }
-        }.andExpect {
-            status { isOk }
-            content { contentType(APPLICATION_JSON) }
-            jsonPath("$[0].title") { value("todo list") }
-            jsonPath("$[1].title") { value("spring study") }
-            jsonPath("$[0].completed") { value(false) }
-            jsonPath("$[1].completed") { value(true) }
-        }.andDo {
-            print()
-        }
+        webTestClient.get()
+            .uri("/todo")
+            .accept(APPLICATION_JSON)
+            .exchange()
+            .expectStatus().isOk
+            .expectBody()
+            .jsonPath("$[0].title").isEqualTo("todo list")
+            .jsonPath("$[1].title").isEqualTo("spring study")
+            .jsonPath("$[0].completed").isEqualTo(false)
+            .jsonPath("$[1].completed").isEqualTo(true)
+
+
     }
 
 
@@ -56,70 +49,56 @@ internal class TodoControllerTests(private val mockMvc: MockMvc) {
 
         given(todoService.save(any())).willReturn(
 
-            Todo(title = "todo list", completed = false)
+            Mono.just(Todo(title = "todo list", completed = false))
 
         )
 
-        mockMvc.post("/todo") {
-            content = """{"title" :"todo list" , "completed" : "false"}"""
-            accept = APPLICATION_JSON
-            contentType = APPLICATION_JSON
-            headers {
-                contentLanguage = Locale.KOREA
-            }
-        }.andExpect {
-            status { isOk }
-            content { contentType(APPLICATION_JSON) }
-            jsonPath("$.title") { value("todo list") }
-            jsonPath("$.completed") { value(false) }
-        }.andDo {
-            print()
-        }
+        webTestClient.post()
+            .uri("/todo")
+            .accept(APPLICATION_JSON)
+            .contentType(APPLICATION_JSON)
+            .body("""{"title" :"todo list" , "completed" : "false"}""")
+            .exchange()
+            .expectStatus().isOk
+            .expectBody()
+            .jsonPath("$.title").isEqualTo("todo list")
+            .jsonPath("$.completed").isEqualTo(false)
+
     }
 
     @Test
     fun `todo completed test`() {
 
-        given(todoService.completed(anyLong(), anyBoolean())).willReturn(
+        given(todoService.completed(anyString(), anyBoolean())).willReturn(
 
-            Todo(title = "todo list", completed = true)
+            Mono.just(Todo(title = "todo list", completed = true))
 
         )
 
-        mockMvc.put("/todo/{id}", 1) {
+        webTestClient.put()
+            .uri("/todo/{id}", 1)
+            .accept(APPLICATION_JSON)
+            .contentType(APPLICATION_JSON)
+            .body("""{"completed" : "true"}""")
+            .exchange()
+            .expectStatus().isOk
+            .expectBody()
+            .jsonPath("$.title").isEqualTo("todo list")
+            .jsonPath("$.completed").isEqualTo(true)
 
-            content = """{"completed" : "true"}"""
-            param("completed", "true")
-            accept = APPLICATION_JSON
-            contentType = APPLICATION_JSON
-            headers {
-                contentLanguage = Locale.KOREA
-            }
-        }.andExpect {
-            status { isOk }
-            content { contentType(APPLICATION_JSON) }
-            jsonPath("$.title") { value("todo list") }
-            jsonPath("$.completed") { value(true) }
-        }.andDo {
-            print()
-        }
     }
 
     @Test
     fun `todo delete test`() {
 
-        doNothing()
-            .`when`(todoService).delete(anyLong())
+        given(todoService.delete(any())).willReturn(Mono.empty())
 
-        mockMvc.delete("/todo/{id}", 1) {
-            accept = APPLICATION_JSON
-            headers {
-                contentLanguage = Locale.KOREA
-            }
-        }.andExpect {
-            status { isOk }
-        }.andDo {
-            print()
-        }
+        webTestClient.delete()
+            .uri("/todo/{id}", 1)
+            .accept(APPLICATION_JSON)
+            .exchange()
+            .expectStatus().isOk
+            .expectBody()
+
     }
 }

@@ -1,16 +1,10 @@
 package ml.wonwoo.todoweb.todo
 
 import java.time.LocalDateTime
-import javax.persistence.Entity
-import javax.persistence.GeneratedValue
-import javax.persistence.Id
 
-@Entity
 data class Todo(
 
-    @Id
-    @GeneratedValue
-    val id: Long? = null,
+    val id: String? = null,
 
     val title: String,
 

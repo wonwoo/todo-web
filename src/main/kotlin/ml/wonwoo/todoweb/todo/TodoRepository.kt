@@ -1,5 +1,5 @@
 package ml.wonwoo.todoweb.todo
 
-import org.springframework.data.jpa.repository.JpaRepository
+import org.springframework.data.mongodb.repository.ReactiveMongoRepository
 
-interface TodoRepository : JpaRepository<Todo, Long>
+interface TodoRepository : ReactiveMongoRepository<Todo, String>

@@ -2,30 +2,31 @@ package ml.wonwoo.todoweb.todo
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
-import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager
+import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest
+import reactor.test.StepVerifier
 
 
-@DataJpaTest
-internal class TodoRepositoryTests(private val todoRepository: TodoRepository,
-                                   private val testEntityManager: TestEntityManager) {
+@DataMongoTest
+internal class TodoRepositoryTests(private val todoRepository: TodoRepository) {
 
     @Test
     fun `dummy repository test`() {
 
-        val todo1 = testEntityManager.persist(Todo(title = "test todo", completed = true))
-        val todo2 = testEntityManager.persist(Todo(title = "test todo1", completed = false))
+        val todo1 = todoRepository.saveAll(listOf(Todo(title = "test todo", completed = true), Todo(title = "test todo1", completed = false)))
 
         val todo = todoRepository.findAll()
 
-        assertThat(todo).hasSize(2)
-        assertThat(todo[0].id).isEqualTo(todo1.id)
-        assertThat(todo[0].title).isEqualTo("test todo")
-        assertThat(todo[0].completed).isEqualTo(true)
+        val many = todo1.thenMany(todo)
 
-        assertThat(todo[1].id).isEqualTo(todo2.id)
-        assertThat(todo[1].title).isEqualTo("test todo1")
-        assertThat(todo[1].completed).isEqualTo(false)
+        StepVerifier.create(many).assertNext {
+            assertThat(it.id).isNotNull()
+            assertThat(it.title).isEqualTo("test todo")
+            assertThat(it.completed).isEqualTo(true)
+        }.assertNext {
+            assertThat(it.id).isNotNull()
+            assertThat(it.title).isEqualTo("test todo1")
+            assertThat(it.completed).isEqualTo(false)
+        }.verifyComplete()
 
     }
 

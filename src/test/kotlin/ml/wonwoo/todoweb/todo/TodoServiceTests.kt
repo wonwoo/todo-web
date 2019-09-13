@@ -1,6 +1,7 @@
 package ml.wonwoo.todoweb.todo
 
 import ml.wonwoo.todoweb.any
+import ml.wonwoo.todoweb.assertThatExceptionOfType
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -75,6 +76,26 @@ internal class TodoServiceTests(@Mock private val todoRepository: TodoRepository
             assertThat(it.title).isEqualTo("todo list")
             assertThat(it.completed).isEqualTo(true)
         }.verifyComplete()
+
+    }
+
+    @Test
+    fun `todo completed not found id test`() {
+
+        given(todoRepository.findById(anyString()))
+            .willReturn(Mono.empty())
+
+        val todo = todoService.completed("foo", false)
+
+        StepVerifier.create(todo)
+
+            .expectErrorSatisfies {
+
+                assertThat(it).isInstanceOf(TodoNotFoundException::class.java)
+                assertThat(it.message).isEqualTo("not found id foo")
+
+            }
+            .verify()
 
     }
 

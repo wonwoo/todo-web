@@ -2,6 +2,7 @@ package ml.wonwoo.todoweb.todo
 
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Flux
+import reactor.kotlin.core.publisher.switchIfEmpty
 import reactor.kotlin.core.publisher.toMono
 
 
@@ -19,7 +20,7 @@ class TodoService(private val todoRepository: TodoRepository) {
             it.completed = completed
 
         }.flatMap { todoRepository.save(it) }
-        .switchIfEmpty(TodoNotFoundException("not found id $id").toMono())
+        .switchIfEmpty { TodoNotFoundException("not found id $id").toMono() }
 
     fun delete(id: String) = todoRepository.deleteById(id)
 

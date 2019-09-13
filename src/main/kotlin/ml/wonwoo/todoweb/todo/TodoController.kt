@@ -20,17 +20,19 @@ class TodoController(private val todoService: TodoService) {
     fun findAll(): Flux<TodoDto> = todoService.findAll().map { it.dto() }
 
     @PostMapping
-    fun save(@RequestBody todoRequest: TodoRequest): Mono<TodoDto> = todoService.save(todoRequest.toTodo()).map { it.dto() }
+    fun save(@RequestBody todoRequest: TodoRequest): Mono<TodoDto> =
+        todoService.save(todoRequest.toTodo()).map { it.dto() }
 
     @PutMapping("/{id}")
-    fun completed(@PathVariable id: String, @RequestBody todoCompleted: TodoCompleted) = todoService.completed(id, todoCompleted.completed)
+    fun completed(@PathVariable id: String, @RequestBody todoCompleted: TodoCompleted): Mono<TodoDto> =
+        todoService.completed(id, todoCompleted.completed).map { it.dto() }
 
     @DeleteMapping("/{id}")
-    fun delete(@PathVariable id: String) = todoService.delete(id)
+    fun delete(@PathVariable id: String): Mono<Void> = todoService.delete(id)
 }
 
 
-fun TodoRequest.toTodo() = Todo(title = this.title, completed = false)
+fun TodoRequest.toTodo(): Todo = Todo(title = this.title, completed = false)
 
 data class TodoCompleted(
 

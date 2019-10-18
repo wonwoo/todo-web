@@ -9,8 +9,9 @@ import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest
 import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.http.MediaType.APPLICATION_JSON
 import org.springframework.test.web.reactive.server.WebTestClient
-import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+import reactor.kotlin.core.publisher.toFlux
+import reactor.kotlin.core.publisher.toMono
 
 @WebFluxTest(TodoController::class)
 internal class TodoControllerTests(private val webTestClient: WebTestClient) {
@@ -24,8 +25,8 @@ internal class TodoControllerTests(private val webTestClient: WebTestClient) {
 
         given(todoService.findAll()).willReturn(
 
-            Flux.just(Todo(title = "todo list", completed = false),
-                Todo(title = "spring study", completed = true))
+            listOf(Todo(title = "todo list", completed = false),
+                Todo(title = "spring study", completed = true)).toFlux()
 
         )
 
@@ -49,7 +50,7 @@ internal class TodoControllerTests(private val webTestClient: WebTestClient) {
 
         given(todoService.save(any())).willReturn(
 
-            Mono.just(Todo(title = "todo list", completed = false))
+            Todo(title = "todo list", completed = false).toMono()
 
         )
 
@@ -57,7 +58,7 @@ internal class TodoControllerTests(private val webTestClient: WebTestClient) {
             .uri("/todo")
             .accept(APPLICATION_JSON)
             .contentType(APPLICATION_JSON)
-            .body("""{"title" :"todo list" , "completed" : "false"}""")
+            .bodyValue("""{"title" :"todo list" , "completed" : "false"}""")
             .exchange()
             .expectStatus().isOk
             .expectBody()
@@ -71,7 +72,7 @@ internal class TodoControllerTests(private val webTestClient: WebTestClient) {
 
         given(todoService.completed(anyString(), anyBoolean())).willReturn(
 
-            Mono.just(Todo(title = "todo list", completed = true))
+            Todo(title = "todo list", completed = true).toMono()
 
         )
 
@@ -79,7 +80,7 @@ internal class TodoControllerTests(private val webTestClient: WebTestClient) {
             .uri("/todo/{id}", 1)
             .accept(APPLICATION_JSON)
             .contentType(APPLICATION_JSON)
-            .body("""{"completed" : "true"}""")
+            .bodyValue("""{"completed" : "true"}""")
             .exchange()
             .expectStatus().isOk
             .expectBody()

@@ -1,7 +1,6 @@
 package ml.wonwoo.todoweb.todo
 
 import ml.wonwoo.todoweb.any
-import ml.wonwoo.todoweb.assertThatExceptionOfType
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -13,7 +12,8 @@ import org.mockito.Mockito.atLeastOnce
 import org.mockito.junit.jupiter.MockitoExtension
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
-import reactor.test.StepVerifier
+import reactor.kotlin.core.publisher.toMono
+import reactor.kotlin.test.test
 
 
 @ExtendWith(MockitoExtension::class)
@@ -32,7 +32,7 @@ internal class TodoServiceTests(@Mock private val todoRepository: TodoRepository
 
         val todo = todoService.findAll()
 
-        StepVerifier.create(todo).assertNext {
+        todo.test().assertNext {
             assertThat(it.id).isEqualTo("foo")
             assertThat(it.title).isEqualTo("todo list")
             assertThat(it.completed).isEqualTo(true)
@@ -48,11 +48,11 @@ internal class TodoServiceTests(@Mock private val todoRepository: TodoRepository
     fun `todo save test`() {
 
         given(todoRepository.save(any<Todo>()))
-            .willReturn(Mono.just(Todo(id = "foo", title = "todo list", completed = true)))
+            .willReturn(Todo(id = "foo", title = "todo list", completed = true).toMono())
 
         val todo = todoService.save(Todo(title = "todo list", completed = true))
 
-        StepVerifier.create(todo).assertNext {
+        todo.test().assertNext {
             assertThat(it.id).isEqualTo("foo")
             assertThat(it.title).isEqualTo("todo list")
             assertThat(it.completed).isEqualTo(true)
@@ -64,14 +64,14 @@ internal class TodoServiceTests(@Mock private val todoRepository: TodoRepository
     fun `todo completed test`() {
 
         given(todoRepository.findById(anyString()))
-            .willReturn(Mono.just(Todo(id = "foo", title = "todo list", completed = true)))
+            .willReturn(Todo(id = "foo", title = "todo list", completed = true).toMono())
 
         given(todoRepository.save(any<Todo>()))
-            .willReturn(Mono.just(Todo(id = "foo", title = "todo list", completed = true)))
+            .willReturn(Todo(id = "foo", title = "todo list", completed = true).toMono())
 
         val todo = todoService.completed("foo", false)
 
-        StepVerifier.create(todo).assertNext {
+        todo.test().assertNext {
             assertThat(it.id).isEqualTo("foo")
             assertThat(it.title).isEqualTo("todo list")
             assertThat(it.completed).isEqualTo(true)
@@ -87,7 +87,7 @@ internal class TodoServiceTests(@Mock private val todoRepository: TodoRepository
 
         val todo = todoService.completed("foo", false)
 
-        StepVerifier.create(todo)
+        todo.test()
 
             .expectErrorSatisfies {
 
@@ -106,7 +106,7 @@ internal class TodoServiceTests(@Mock private val todoRepository: TodoRepository
 
         val delete = todoService.delete("foo")
 
-        StepVerifier.create(delete).then {
+        delete.test().then {
             verify(todoRepository, atLeastOnce()).deleteById(anyString())
         }.verifyComplete()
 

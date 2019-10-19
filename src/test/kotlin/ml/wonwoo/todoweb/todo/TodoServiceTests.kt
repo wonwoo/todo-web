@@ -12,6 +12,7 @@ import org.mockito.Mockito.atLeastOnce
 import org.mockito.junit.jupiter.MockitoExtension
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+import reactor.kotlin.core.publisher.toFlux
 import reactor.kotlin.core.publisher.toMono
 import reactor.kotlin.test.test
 
@@ -27,8 +28,8 @@ internal class TodoServiceTests(@Mock private val todoRepository: TodoRepository
     fun `todo find all test`() {
 
         given(todoRepository.findAll())
-            .willReturn(Flux.just(Todo(id = "foo", title = "todo list", completed = true),
-                Todo(id = "bar", title = "todo list1", completed = false)))
+            .willReturn(listOf(Todo(id = "foo", title = "todo list", completed = true),
+                Todo(id = "bar", title = "todo list1", completed = false)).toFlux())
 
         val todo = todoService.findAll()
 
